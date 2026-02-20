@@ -2,10 +2,62 @@
 <html>
 <head>
     <title>AI Code Refine & Optimize</title>
-</head>
-<body style="text-align:center; font-family:Arial;">
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            background-color: #f4f6f9;
+        }
 
-<h2>🚀 AI Code Review, Rewrite & Optimize</h2>
+        /* Textareas styling */
+        textarea {
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        /* Dark / thick input and output boxes */
+        #codeInput, #codeOutput {
+            background-color: #1f2937; /* dark gray */
+            color: #f9fafb;            /* light text */
+            font-family: 'Courier New', monospace; /* code font */
+            font-weight: bold;          /* thicker letters */
+            border: 2px solid #2563eb; /* thicker blue border */
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.4); /* subtle shadow */
+            padding: 15px;
+            border-radius: 8px;
+            resize: vertical;          /* allow vertical resize */
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            background-color: #2563eb;
+            color: white;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #1e40af;
+        }
+
+        pre {
+            text-align: left;
+            background: #111827;
+            color: #e5e7eb;
+            padding: 15px;
+            border-radius: 8px;
+            width: 80%;
+            margin: auto;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>AI Code Refine & Optimize</h2>
 
 <div style="display:flex; justify-content:center; gap:40px; margin-top:20px;">
 
@@ -40,32 +92,17 @@
 
 <br><br>
 
-<div style="display:flex; justify-content:center; gap:40px; margin-top:20px;">
-
-    <div>
-        <h3>Review Result</h3>
-        <textarea id="reviewOutput" rows="15" cols="50" readonly></textarea>
-    </div>
-
-    <div>
-        <h3>Rewrite Result</h3>
-        <textarea id="rewriteOutput" rows="15" cols="50" readonly></textarea>
-    </div>
-
-    <div>
-        <h3>Optimize Result</h3>
-        <textarea id="optimizeOutput" rows="15" cols="50" readonly></textarea>
-    </div>
-
-</div>
+<pre id="output"></pre>
 
 <script>
 const API_BASE = "http://127.0.0.1:8000";
 
 async function handleResponse(response) {
+    const output = document.getElementById("output");
+
     if (!response.ok) {
         const error = await response.json();
-        alert("Error: " + error.detail);
+        output.textContent = "Error: " + error.detail;
         return null;
     }
     return response.json();
@@ -84,21 +121,26 @@ async function reviewCode() {
     const data = await handleResponse(response);
     if (!data) return;
 
-    let text = "=== REVIEW REPORT ===\n\n";
+    document.getElementById("output").textContent =
+`REVIEW
 
-    text += "BUGS:\n" + data.review.bugs + "\n\n";
-    text += "SECURITY:\n" + data.review.security + "\n\n";
-    text += "PERFORMANCE:\n" + data.review.performance + "\n\n";
-    text += "READABILITY:\n" + data.review.readability + "\n\n";
-    text += "RATING: " + data.review.rating + "\n\n";
+Bugs:
+${data.review.bugs}
 
-    text += "=== COMPLEXITY ===\n";
-    text += "Lines: " + data.complexity.lines_of_code + "\n";
-    text += "Functions: " + data.complexity.functions + "\n";
-    text += "Loops: " + data.complexity.loops + "\n";
-    text += "Conditionals: " + data.complexity.conditionals + "\n";
+Security:
+${data.review.security}
 
-    document.getElementById("reviewOutput").value = text;
+Performance:
+${data.review.performance}
+
+Readability:
+${data.review.readability}
+
+Rating: ${data.review.rating}/10
+
+Complexity:
+${JSON.stringify(data.complexity, null, 2)}
+`;
 }
 
 async function rewriteCode() {
@@ -114,7 +156,7 @@ async function rewriteCode() {
     const data = await handleResponse(response);
     if (!data) return;
 
-    document.getElementById("rewriteOutput").value = data.rewritten_code;
+    document.getElementById("output").textContent = data.rewritten_code;
 }
 
 async function optimizeCode() {
@@ -130,7 +172,7 @@ async function optimizeCode() {
     const data = await handleResponse(response);
     if (!data) return;
 
-    document.getElementById("optimizeOutput").value = data.optimized_code;
+    document.getElementById("output").textContent = data.optimized_code;
 }
 
 async function runCode() {

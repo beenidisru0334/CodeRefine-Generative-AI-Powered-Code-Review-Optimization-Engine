@@ -7,6 +7,7 @@ import os
 from dotenv import load_dotenv
 import subprocess
 import json
+import re
 
 # ================= LOAD ENV =================
 load_dotenv()
@@ -35,8 +36,9 @@ SUPPORTED_LANGUAGES = ["python", "javascript"]
 class CodeRequest(BaseModel):
     code: str
     language: str
+    focus_areas: List[str] = []
 
-# ================= COMPLEXITY =================
+# ================= UTILITIES =================
 def calculate_complexity(code: str):
     lines = code.splitlines()
     return {
@@ -53,16 +55,14 @@ def validate_language(language: str):
     return lang
 
 def safe_json_parse(text: str):
+    text = text.strip()
+    text = re.sub(r"^```[a-zA-Z]*", "", text)
+    text = re.sub(r"```$", "", text)
+    text = text.strip()
     try:
         return json.loads(text)
     except:
-        return {
-            "bugs": text,
-            "security": "Not structured response",
-            "performance": "Not structured response",
-            "readability": "Not structured response",
-            "rating": "N/A"
-        }
+        return {"message": text}
 
 # ================= REVIEW =================
 @app.post("/api/review")
@@ -76,16 +76,14 @@ async def review_code(request: CodeRequest):
     prompt = f"""
 You are a professional code reviewer.
 
-Analyze this {language} code.
-
-Return STRICT JSON format:
+Return STRICT JSON only.
 
 {{
-  "bugs": "Explain bugs clearly",
-  "security": "Explain security issues",
-  "performance": "Explain performance issues",
-  "readability": "Explain readability issues",
-  "rating": "Give rating 1-10"
+  "bugs": "...",
+  "security": "...",
+  "performance": "...",
+  "readability": "...",
+  "rating": 1-10
 }}
 
 Code:
@@ -96,7 +94,7 @@ Code:
         model=MODEL_NAME,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.2,
-        max_tokens=1200
+        max_tokens=1500
     )
 
     parsed = safe_json_parse(response.choices[0].message.content)
@@ -114,9 +112,9 @@ async def rewrite_code(request: CodeRequest):
 
     prompt = f"""
 Refactor this {language} code.
-Fix formatting and naming.
-Do NOT change logic.
-Return only final code.
+Fix syntax errors, improve formatting and naming.
+Do NOT change algorithm.
+Return ONLY final code.
 
 Code:
 {request.code}
@@ -126,7 +124,7 @@ Code:
         model=MODEL_NAME,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.2,
-        max_tokens=1200
+        max_tokens=1500
     )
 
     return {"rewritten_code": response.choices[0].message.content}
@@ -138,9 +136,10 @@ async def optimize_code(request: CodeRequest):
     language = validate_language(request.language)
 
     prompt = f"""
-Optimize this {language} code for better performance.
-You may change algorithm.
-Return only final optimized code.
+Optimize this {language} code.
+Improve efficiency and memory usage.
+May change algorithm.
+Return ONLY final optimized code.
 
 Code:
 {request.code}
@@ -150,12 +149,12 @@ Code:
         model=MODEL_NAME,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.2,
-        max_tokens=1200
+        max_tokens=1500
     )
 
     return {"optimized_code": response.choices[0].message.content}
 
-# ================= RUN CODE =================
+# ================= SAFE EXECUTION =================
 @app.post("/api/output")
 async def run_code(request: CodeRequest):
 
