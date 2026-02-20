@@ -52,6 +52,22 @@
             margin: auto;
             overflow-x: auto;
         }
+/* ✅ Floating AI Button (Bottom Right) */
+#aiFloating {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+}
+
+#aiFloating button {
+    padding: 12px 20px;
+    background: #10a37f;
+    color: white;
+    border-radius: 25px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+}
     </style>
 </head>
 
@@ -190,7 +206,36 @@ async function runCode() {
 
     document.getElementById("codeOutput").value = data.output;
 }
-</script>
+function openAI() {
+    const code = document.getElementById("codeInput").value;
+    const output = document.getElementById("codeOutput").value;
 
+    // Only trigger if there is an actual runtime error
+    if (!output || output.trim() === "" || output.trim() === "Execution timeout") {
+        alert("No error detected!");
+        return;
+    }
+
+    const message = `
+I am getting this error when running my code:
+
+${output}
+
+Here is my code:
+
+${code}
+
+Please give a solution.
+`;
+
+    const encodedMessage = encodeURIComponent(message);
+
+    // Opens ChatGPT with pre-filled message
+    window.open("https://chat.openai.com/?q=" + encodedMessage, "_blank");
+}</script>
+<!-- ✅ Floating AI Tool -->
+<div id="aiFloating">
+<button onclick="openAI()">Ask AI</button>
+</div>
 </body>
 </html>
