@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Code Refine & Optimize</title>
+</head>
+<body style="text-align:center; font-family:Arial;">
+
+<h2>🚀 AI Code Review, Rewrite & Optimize</h2>
+
+<div style="display:flex; justify-content:center; gap:40px; margin-top:20px;">
+
+    <div>
+        <h3>Enter Code:</h3>
+        <textarea id="codeInput" rows="20" cols="60"></textarea>
+    </div>
+
+    <div style="display:flex; align-items:center;">
+        <button onclick="runCode()">▶ Run</button>
+    </div>
+
+    <div>
+        <h3>Execution Output:</h3>
+        <textarea id="codeOutput" rows="20" cols="60" readonly></textarea>
+    </div>
+
+</div>
+
+<br>
+
+<select id="language">
+    <option value="python">Python</option>
+    <option value="javascript">JavaScript</option>
+</select>
+
+<br><br>
+
+<button onclick="reviewCode()">Review</button>
+<button onclick="rewriteCode()">Rewrite</button>
+<button onclick="optimizeCode()">Optimize</button>
+
+<br><br>
+
+<div style="display:flex; justify-content:center; gap:40px; margin-top:20px;">
+
+    <div>
+        <h3>Review Result</h3>
+        <textarea id="reviewOutput" rows="15" cols="50" readonly></textarea>
+    </div>
+
+    <div>
+        <h3>Rewrite Result</h3>
+        <textarea id="rewriteOutput" rows="15" cols="50" readonly></textarea>
+    </div>
+
+    <div>
+        <h3>Optimize Result</h3>
+        <textarea id="optimizeOutput" rows="15" cols="50" readonly></textarea>
+    </div>
+
+</div>
+
+<script>
+const API_BASE = "http://127.0.0.1:8000";
+
+async function handleResponse(response) {
+    if (!response.ok) {
+        const error = await response.json();
+        alert("Error: " + error.detail);
+        return null;
+    }
+    return response.json();
+}
+
+async function reviewCode() {
+    const response = await fetch(API_BASE + "/api/review", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            code: document.getElementById("codeInput").value,
+            language: document.getElementById("language").value
+        })
+    });
+
+    const data = await handleResponse(response);
+    if (!data) return;
+
+    let text = "=== REVIEW REPORT ===\n\n";
+
+    text += "BUGS:\n" + data.review.bugs + "\n\n";
+    text += "SECURITY:\n" + data.review.security + "\n\n";
+    text += "PERFORMANCE:\n" + data.review.performance + "\n\n";
+    text += "READABILITY:\n" + data.review.readability + "\n\n";
+    text += "RATING: " + data.review.rating + "\n\n";
+
+    text += "=== COMPLEXITY ===\n";
+    text += "Lines: " + data.complexity.lines_of_code + "\n";
+    text += "Functions: " + data.complexity.functions + "\n";
+    text += "Loops: " + data.complexity.loops + "\n";
+    text += "Conditionals: " + data.complexity.conditionals + "\n";
+
+    document.getElementById("reviewOutput").value = text;
+}
+
+async function rewriteCode() {
+    const response = await fetch(API_BASE + "/api/rewrite", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            code: document.getElementById("codeInput").value,
+            language: document.getElementById("language").value
+        })
+    });
+
+    const data = await handleResponse(response);
+    if (!data) return;
+
+    document.getElementById("rewriteOutput").value = data.rewritten_code;
+}
+
+async function optimizeCode() {
+    const response = await fetch(API_BASE + "/api/optimize", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            code: document.getElementById("codeInput").value,
+            language: document.getElementById("language").value
+        })
+    });
+
+    const data = await handleResponse(response);
+    if (!data) return;
+
+    document.getElementById("optimizeOutput").value = data.optimized_code;
+}
+
+async function runCode() {
+    const response = await fetch(API_BASE + "/api/output", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            code: document.getElementById("codeInput").value,
+            language: document.getElementById("language").value
+        })
+    });
+
+    const data = await handleResponse(response);
+    if (!data) return;
+
+    document.getElementById("codeOutput").value = data.output;
+}
+</script>
+
+</body>
+</html>
