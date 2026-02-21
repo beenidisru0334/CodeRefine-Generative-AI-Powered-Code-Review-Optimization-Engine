@@ -52,22 +52,23 @@
             margin: auto;
             overflow-x: auto;
         }
-/* ✅ Floating AI Button (Bottom Right) */
-#aiFloating {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-}
 
-#aiFloating button {
-    padding: 12px 20px;
-    background: #10a37f;
-    color: white;
-    border-radius: 25px;
-    border: none;
-    font-weight: bold;
-    cursor: pointer;
-}
+        /* ✅ Floating AI Button (Bottom Right) */
+        #aiFloating {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+
+        #aiFloating button {
+            padding: 12px 20px;
+            background: #10a37f;
+            color: white;
+            border-radius: 25px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -206,13 +207,35 @@ async function runCode() {
 
     document.getElementById("codeOutput").value = data.output;
 }
+
 function openAI() {
     const code = document.getElementById("codeInput").value;
     const output = document.getElementById("codeOutput").value;
 
-    // Only trigger if there is an actual runtime error
-    if (!output || output.trim() === "" || output.trim() === "Execution timeout") {
-        alert("No error detected!");
+    const errorPattern = /Error|Exception|Traceback|SyntaxError|TypeError|ReferenceError/i;
+
+    // Remove any existing error message
+    const existingMsg = document.getElementById("errorMessage");
+    if (existingMsg) existingMsg.remove();
+
+    if (!output || output.trim() === "" || !errorPattern.test(output)) {
+        // Show a small inline message instead of alert
+        const msg = document.createElement("div");
+        msg.id = "errorMessage";
+        msg.textContent = "✅ No runtime error detected!";
+        msg.style.position = "fixed";
+        msg.style.bottom = "80px";
+        msg.style.right = "20px";
+        msg.style.padding = "12px 20px";
+        msg.style.backgroundColor = "#10a37f";
+        msg.style.color = "white";
+        msg.style.borderRadius = "8px";
+        msg.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
+        msg.style.fontWeight = "bold";
+        document.body.appendChild(msg);
+
+        // Auto-hide after 3 seconds
+        setTimeout(() => msg.remove(), 3000);
         return;
     }
 
@@ -230,12 +253,14 @@ Please give a solution.
 
     const encodedMessage = encodeURIComponent(message);
 
-    // Opens ChatGPT with pre-filled message
+    // Open ChatGPT in a new tab
     window.open("https://chat.openai.com/?q=" + encodedMessage, "_blank");
-}</script>
+}
+</script>
+
 <!-- ✅ Floating AI Tool -->
 <div id="aiFloating">
-<button onclick="openAI()">Ask AI</button>
+    <button onclick="openAI()">Ask AI</button>
 </div>
 </body>
 </html>
